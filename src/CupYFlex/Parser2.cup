@@ -339,10 +339,30 @@ listaSentencias::=     listaSentencias: instrucciones  sentencias: sent
 // VARIABLES
 
 
-declaraVar::=   VAR  tipos:tip listaID:idList       {:RESULT = new Declaracion(idList,tip, false );:}
-                |KEEP VAR tipos:tip listaID:idList  {:RESULT = new Declaracion(idList,tip, true );:}
-                |tipos:tip listaID:idList  {:RESULT = new Declaracion(idList,tip, true );:}
-                |KEEP tipos:tip listaID:idList  {:RESULT = new Declaracion(idList,tip, true );:}
+declaraVar::=   VAR  tipos:tip listaID:idList       
+                            {:ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );:}
+                |KEEP VAR tipos:tip listaID:idList  
+                           {:ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );:}
+                |tipos:tip listaID:idList  
+                        {:ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );:}
+                |KEEP tipos:tip listaID:idList  
+                            {:ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );:}
 ;
 
 declaracionVar ::=    declaraVar:dec  IGUAL  expresion:exp 

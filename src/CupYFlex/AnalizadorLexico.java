@@ -3,6 +3,7 @@
 package CupYFlex;
 import java_cup.runtime.* ;
 import java_cup.runtime.Symbol;
+import CupYFlex.sym;
 import java.util.ArrayList;
 import Backend.Pintor.PintarPalabras;
 /*--------------2 Declaraciones ------------*/
@@ -565,6 +566,8 @@ public class AnalizadorLexico implements java_cup.runtime.Scanner {
    * @param   in  the java.io.Reader to read input from.
    */
   public AnalizadorLexico(java.io.Reader in) {
+  	yyline = 1; 
+	yychar = 1; 
     this.zzReader = in;
   }
 

@@ -7,8 +7,11 @@ package Backend.Instrucciones;
 
 import Backend.Compilador.AST;
 import Backend.Compilador.Entorno;
+import Backend.Compilador.Simbolo;
+import Backend.Compilador.Simbolo.Tipo;
 import Backend.Interfaces.Expresion;
 import Backend.Interfaces.Instruccion;
+import Frontend.Principal;
 import java.util.ArrayList;
 
 /**
@@ -53,17 +56,64 @@ public class Asignacion implements Instruccion{
          this.ins=funcion;
     }
  public Asignacion(ArrayList<String> identificadores,  Instruccion funcion) {
-         this.identificador = identificador;
+         this.identificadores = identificadores;
          this.ins=funcion;
     }
     @Override
     public Object ejecutar(Entorno entorno, AST arbol) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+       
+         Object valor_simbolo = valor.getValorImplicito(entorno, arbol);
+         Tipo tipoResultado = valor.getTipo(entorno, arbol);
+          if(identificadores!=null){
+              for (int i = 0; i < identificadores.size(); i++) {
+                       if (entorno.Existe(identificadores.get(i)))
+                      {
+                          Simbolo simbolo = entorno.getSimbolo(identificadores.get(i));
+                          if (simbolo.tipo == tipoResultado)
+                          {
+                              simbolo.valor = valor_simbolo;
+                              entorno.Reemplazar(identificadores.get(i), simbolo);
+                          }
+                          else
+                          {
+                              Principal.consola.setText(Principal.consola.getText()+"Error semantico en Asignacion, no se permiten asignar valores de diferentes tipos en linea " + linea + " y columna " + columna + "\n");
+                              return false;
+                          }
+                      }
+                      else
+                      {
+                          Principal.consola.setText(Principal.consola.getText()+"Error semantico no existe el  id " + identificadores.get(i) + " " + linea + " y columna " + columna + "\n");
+                          return null;
+                      }
+              }
+          }else{
+              if (entorno.Existe(identificador))
+            {
+                Simbolo simbolo = entorno.getSimbolo(identificador);
+                if (simbolo.tipo == tipoResultado)
+                {
+                    simbolo.valor = valor_simbolo;
+                    entorno.Reemplazar(identificador, simbolo);
+                }
+                else
+                {
+                    Principal.consola.setText(Principal.consola.getText()+"Error semantico en Asignacion, no se permiten asignar valores de diferentes tipos en linea " + linea + " y columna " + columna + "\n");
+                    return false;
+                }
+            }
+            else
+            {
+                Principal.consola.setText(Principal.consola.getText()+"Error semantico no existe el  id " + identificador + " " + linea + " y columna " + columna + "\n");
+                return null;
+            }
+          }
+            return null;
+        }
 
     @Override
     public String tipoIns() {
-        return "asignacion";
+        return "Asignacion";
     }
-    
+
+  
 }

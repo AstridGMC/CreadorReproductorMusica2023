@@ -11,10 +11,10 @@ package Backend.Compilador;
 public class Simbolo {
     public String idUnico;
     public String identificador;
-    public int valor;
+    public Object valor;
     public Tipo tipo;
-    int linea;
-    int columna;
+    public int linea;
+    public int columna;
     
     public  enum Tipo {
        STRING,

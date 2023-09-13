@@ -7,8 +7,13 @@ package Backend.Instrucciones;
 
 import Backend.Compilador.AST;
 import Backend.Compilador.Entorno;
+import Backend.Compilador.Simbolo;
 import Backend.Compilador.Simbolo.Tipo;
+import Backend.Interfaces.Expresion;
 import Backend.Interfaces.Instruccion;
+
+import Backend.Funciones.Funcion;
+import Frontend.Principal;
 import java.util.ArrayList;
 
 /**
@@ -16,12 +21,13 @@ import java.util.ArrayList;
  * @author astridmc
  */
 public class Declaracion implements Instruccion{
-    ArrayList<String> ids;
+    ArrayList<Simbolo> variables;
     Tipo tipo ;
     boolean isKeep;
+    Expresion valor;
 
-    public Declaracion(ArrayList<String> ids, Tipo tipo, boolean isKeep) {
-        this.ids = ids;
+    public Declaracion(ArrayList<Simbolo> ids, Tipo tipo, boolean isKeep) {
+        this.variables = ids;
         this.tipo = tipo;
         this.isKeep = isKeep;
     }
@@ -29,24 +35,88 @@ public class Declaracion implements Instruccion{
     
     @Override
     public Object ejecutar(Entorno entorno, AST arbol) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Object valor_simbolo = null;
+         Simbolo.Tipo tipoResultado;
+         if (valor != null)
+            {
+                valor_simbolo = valor.getValorImplicito(entorno, arbol);
+               
+                    tipoResultado = getTipo(valor_simbolo);
+            }
+            else
+            {
+                tipoResultado = tipo;
+                if (tipo == Simbolo.Tipo.BOOL)
+                    valor_simbolo = false;
+                else if (tipo == Simbolo.Tipo.DOUBLE)
+                    valor_simbolo = 0.0;
+                else if (tipo == Simbolo.Tipo.INT)
+                    valor_simbolo = 0;
+                else if (tipo == Simbolo.Tipo.STRING)
+                    valor_simbolo = "";
+               else if (tipo == Simbolo.Tipo.CHAR)
+                    valor_simbolo = '.';
+            }
+
+            for (Simbolo variable : variables) {
+            
+          
+                if (!entorno.ExisteEnActual(variable.identificador))
+                {
+                    if (tipo == tipoResultado)
+                    {
+                        variable.valor = valor_simbolo;
+                        entorno.Agregar(variable.identificador, variable);
+                    }
+                    else
+                    {
+                         Principal.consola.setText(Principal.consola.getText()+"Error semantico en Declaracion, no se permiten asignar valores de diferentes tipos en linea " + variable.linea + " y columna " + variable.columna + "\n");
+                        return false;
+                    }
+                }
+                else
+                {
+                    Principal.consola.setText(Principal.consola.getText()+"Error semantico en Declaracion, no se permiten declarar dos id... con el mismo nombre en linea " + variable.linea + " y columna " + variable.columna + "\n");
+                    return false;
+                }
+            }
+            return null;
+        
+    
     }
     
-    @Override
-    public String tipoIns() {
-        return "declaracion";
+    /**
+     *
+     * @param ids
+     */
+    public void setIds(ArrayList<Simbolo> ids) {
+        this.variables = ids;
     }
 
-    public ArrayList<String> getIds() {
-        return ids;
-    }
-
-    public void setIds(ArrayList<String> ids) {
-        this.ids = ids;
-    }
-
-    public Tipo getTipo() {
-        return tipo;
+    public Tipo getTipo(Object valor) {
+        
+            if (boolean.class == valor)
+            {
+                return Simbolo.Tipo.BOOL;
+            }
+            else if (valor == String.class )
+            {
+                return Simbolo.Tipo.STRING;
+            }
+            else if (valor == int.class)
+            {
+                return Simbolo.Tipo.INT;
+            }
+            else if (valor == double.class)
+            {
+                return Simbolo.Tipo.DOUBLE;
+            }
+            else if (valor == double.class)
+            {
+                return Simbolo.Tipo.DOUBLE;
+            }
+            else
+                return Simbolo.Tipo.STRING;
     }
 
     public void setTipo(Tipo tipo) {
@@ -59,6 +129,11 @@ public class Declaracion implements Instruccion{
 
     public void setIsKeep(boolean isKeep) {
         this.isKeep = isKeep;
+    }
+
+    @Override
+    public String tipoIns() {
+        return "Declaracion";
     }
     
     

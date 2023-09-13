@@ -16,7 +16,10 @@ import Backend.Pintor.PintarPalabras;
 %column
 %line 
 
-
+%init{ 
+	yyline = 1; 
+	yychar = 1; 
+%init}
 
 %{
     String cadena="";

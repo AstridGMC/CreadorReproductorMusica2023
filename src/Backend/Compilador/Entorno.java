@@ -28,7 +28,7 @@ public class Entorno {
         this.tabla.add(simbolo);
     }
     
-    private boolean Eliminar(String id){
+    public boolean Eliminar(String id){
         id= id.toLowerCase();
         Entorno entorno = this;
         int i = BuscarPorId(entorno.tabla, id);
@@ -42,7 +42,7 @@ public class Entorno {
         return false;
     }
     
-    private boolean Existe(String id){
+    public boolean Existe(String id){
         id= id.toLowerCase();
         Entorno entorno = this;
         while(entorno!=null){
@@ -54,7 +54,7 @@ public class Entorno {
         return false;
     }
     
-    private boolean ExisteEnActual(String id){
+    public boolean ExisteEnActual(String id){
         if(BuscarPorId(this.tabla, id)>0){
             return true;
         }else{
@@ -62,7 +62,7 @@ public class Entorno {
         }
     }  
     
-    private Simbolo getSimbolo(String id){
+    public Simbolo getSimbolo(String id){
         id= id.toLowerCase();
         Entorno entorno = this;
         int i = BuscarPorId(entorno.tabla, id);
@@ -75,7 +75,7 @@ public class Entorno {
         return null;
     }
     
-    private void Reemplazar(String id, Simbolo nuevoSimbolo){
+    public void Reemplazar(String id, Simbolo nuevoSimbolo){
         id= id.toLowerCase();
         Entorno entorno = this;
         int i = BuscarPorId(entorno.tabla, id);
@@ -87,7 +87,7 @@ public class Entorno {
         }
     }
     
-    private int BuscarPorId(ArrayList<Simbolo> simbolos, String id){
+    public int BuscarPorId(ArrayList<Simbolo> simbolos, String id){
         for (int i = 0; i < simbolos.size(); i++) {
             if(simbolos.get(i).idUnico==id){
                 return i;

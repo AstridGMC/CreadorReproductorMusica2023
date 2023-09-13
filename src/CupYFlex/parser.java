@@ -1166,6 +1166,9 @@ public class parser extends java_cup.runtime.lr_parser {
             ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
             ErrorS.tablaErrores.add(error);
         }else{
+            String lexema = s.value.toString();
+            int columna =  s.right;
+            int fila = s.left;
                   String red="\033[31m"; 
                  System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + "}"+ "\t\tFila " + 0 +"\t\tColumna: " +0+"simbolo"  );
                   avisos.add("ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + "}"+ "\t\tFila " + 0 +"\t\tColumna: " +0+"simbolo");
@@ -1956,7 +1959,11 @@ RESULT= new PistaInst(id.toString(),cPista, ext );
 		int idListleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int idListright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		ArrayList<String> idList = (ArrayList<String>)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		RESULT = new Declaracion(idList,tip, false );
+		ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",49, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1971,7 +1978,11 @@ RESULT= new PistaInst(id.toString(),cPista, ext );
 		int idListleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int idListright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		ArrayList<String> idList = (ArrayList<String>)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		RESULT = new Declaracion(idList,tip, true );
+		ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",49, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1986,7 +1997,11 @@ RESULT= new PistaInst(id.toString(),cPista, ext );
 		int idListleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int idListright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		ArrayList<String> idList = (ArrayList<String>)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		RESULT = new Declaracion(idList,tip, true );
+		ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",49, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2001,7 +2016,11 @@ RESULT= new PistaInst(id.toString(),cPista, ext );
 		int idListleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int idListright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		ArrayList<String> idList = (ArrayList<String>)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		RESULT = new Declaracion(idList,tip, true );
+		ArrayList<Simbolo> simbolos = new ArrayList();
+                                    for (int i = 0; i < idList.size(); i++) {
+                                        simbolos.add(new Simbolo(idList.get(i), tip , idListleft ,idListright));
+                                    }
+		RESULT = new Declaracion(simbolos,tip, false );
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",49, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
