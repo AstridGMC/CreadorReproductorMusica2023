@@ -1,0 +1,634 @@
+
+package CupYFlex;
+
+
+import Backend.Funciones.LlamadaFuncion;
+import Backend.Compilador.Simbolo;
+import Backend.Expresiones.*;
+import Backend.Interfaces.Expresion;
+import Backend.Funciones.Parametro;
+import Backend.Reproductor.Nota;
+import Backend.Funciones.Nativas.Longitud;
+import Backend.Funciones.Nativas.Sumarizar;
+import Backend.Funciones.Nativas.Ordenar;
+import Backend.Funciones.Nativas.Esperar;
+import Backend.Funciones.Reproducir;
+import Backend.Interfaces.Instruccion;
+import Backend.Instrucciones.*;
+import Backend.Instrucciones.IfElse.*;
+
+import java.util.LinkedList;
+import java_cup.runtime.*;
+import CupYFlex.ErrorS;
+import java.util.ArrayList;
+
+
+parser code 
+
+{:
+    public ArrayList<String> avisos = new ArrayList();
+    PistaInst instruccion;
+
+    public PistaInst getInstruccion(){
+            return instruccion;
+        }
+
+    public void syntax_error(Symbol s){
+         if(s.value!= null){
+            System.out.println(s  );
+            String lexema = s.value.toString();
+            int columna =  s.right;
+            int fila = s.left;
+            String red="\033[31m"; 
+            System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna+"simbolo"  );
+            avisos.add("ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna+"simbolo");
+            ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
+            ErrorS.tablaErrores.add(error);
+        }else{
+            String lexema = s.value.toString();
+            int columna =  s.right;
+            int fila = s.left;
+                  String red="\033[31m"; 
+                 System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + "}"+ "\t\tFila " + 0 +"\t\tColumna: " +0+"simbolo"  );
+                  avisos.add("ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + "}"+ "\t\tFila " + 0 +"\t\tColumna: " +0+"simbolo");
+                 ErrorS error = new ErrorS("}", 0, 0 , "error Sintactico");
+                 ErrorS.tablaErrores.add(error);
+        }
+    }
+
+    public void unrrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        String red="\033[31m"; 
+        System.out.println(red + "ERROR SINTACTICO SIN RECUPERACION!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna );
+        ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
+        ErrorS.tablaErrores.add(error);
+    }
+:}
+
+//---------->
+action code {:
+
+    
+:}
+
+
+terminal     DOSPUNTOS,   SENTERO,SDOBLE,SBOOLEAN,SCARACTER,SCADENA,
+                EXTIENDE, PISTA,BOOLF, BOOLT,KEEP,
+                VAR,ARREGLO,SWITCH,DEFAULT,CASO,SALIR,PARA,MIENTRAS,HACER,CONTINUAR,VOID,
+                PRINCIPAL,REPRODUCIR,ESPERAR,ORDENAR,SUMARIZAR,LONGITUD,MENSAJE,
+                ASCENDENTE,DESCENDENTE,PARES,IMPARES,PRIMOS,RETORNA,
+                IF, ELSE,
+                PARABRE,PARCIERRA,CORCHETEIZ,CORCHETEDER,LLAVEABRE,LLAVECIERRA,
+                CADENA,IDENTIFICADOR,DECIMAL,ENTERO,CHAR,
+                MASIGUAL,SUMASUMA,MENOSMENOS,
+                MAS, ASTERISCO, MENOS, DIV, MODULO, POT,
+                NOIGUAL,MAYOR,MENOR,MAYORIGUAL,MENORIGUAL,ESNULO,IGUAL,
+                AND,NAND,OR,NOR,XOR,NOT,
+                PUNTOYCOMA,COMA
+;
+
+
+terminal String UMENOS;
+
+non terminal    
+                 parFor, 
+                // reproducir,      
+                //ARREGLOS 
+                declaracionesArr, 
+                //declaraArr,               
+                parametro   ,     primitivas,
+                sentenciaError,    FINALERROR,
+                num,             notas, parSumarizar, 
+                CONTINUESENTENCE, BREAKSENTENCE,RETURNSENTENCE,ERRORSENTENCE   
+            ;
+
+non terminal DecIncremento decrementosuma;
+
+non terminal DeclaracionFor asignacionesFor;
+
+non terminal ArrayList<String>  listaID, extiende;
+
+non terminal ArrayList<Expresion> 
+        listaExpresion, listElementos, dimensionesArr
+;
+non terminal ArrayList<ArrayList<Expresion>> 
+        elementosArreglo
+;
+
+non terminal ArrayList<Instruccion> cuerpo, cuerpoPista,   listaSentencias, listaSentenciasMetodo;
+
+non terminal ArrayList<Case> caselist;
+
+non terminal ArrayList<Parametro> declaracionParametro;
+
+non terminal String formaOrdenar ;
+
+non terminal Default defaultOp;
+
+non terminal Case caseFinal;
+
+non terminal Expresion 
+         expresion, expr,parLongitud
+
+;
+
+non terminal Simbolo.Tipo tipos;
+
+non terminal PistaInst S,pista;
+
+non terminal SentenciaIf
+            //  INSTRUCCIONES CONDICIONALES 
+                        sentenciaIfElse;
+
+non terminal Arreglo
+    //instruccion arreglo
+    declaraArreglo, arreglo;
+
+non terminal Instruccion
+                
+                cuerpPistaP,sentencias,
+                //SWITCH
+                switchsentencia,           
+                //FOR
+                forSentencia,
+                //MIENTRAS WHILE
+                mientrasSentecia,
+                //DOWHILE 
+                hacerMientrasSentencia, // senteciaListaContinue,
+                //declaracion METODO FUNCION
+                MetodoFuncioDec, MetodoFuncion,  MetodoFuncionNative,
+                //VARIABLES 
+                declaracionVar,  declaraVar,          llamadaAsignacionSentencias 
+;
+
+
+precedence left ELSE;
+precedence left OR, NOR, XOR;
+precedence left AND, NAND;
+precedence left IGUAL,  NOIGUAL;
+precedence left  MAYORIGUAL ,  MENORIGUAL ,  MAYOR ,  MENOR ;
+precedence left MAS , MENOS;
+precedence left ASTERISCO, DIV, MODULO;
+precedence left POT;
+precedence left ESNULO;
+precedence right NOT;
+precedence right UMENOS; 
+
+start with S;
+
+
+S ::=                 
+        pista:s                   {:parser.instruccion=s; RESULT= s;  System.out.println("s");:}    
+        | ERRORSENTENCE S:s    {:parser.instruccion=s; RESULT= s; :}                         
+        |    ;
+
+pista::=    PISTA IDENTIFICADOR:id CORCHETEIZ EXTIENDE extiende:ext CORCHETEDER 
+                LLAVEABRE cuerpo:cPista      {:RESULT= new PistaInst(id.toString(),cPista, ext );:} LLAVECIERRA
+            |PISTA IDENTIFICADOR:id EXTIENDE extiende:ext 
+                LLAVEABRE cuerpo:cPista      {:RESULT= new PistaInst(id.toString(),cPista, ext );:} LLAVECIERRA
+            | PISTA IDENTIFICADOR:id LLAVEABRE cuerpo:cPista LLAVECIERRA                           {:RESULT= new PistaInst(id.toString(),cPista, null );:}
+            //| PISTA ERRORSENTENCE  EXTIENDE extiende:ext LN  cuerpo:cPista     {:RESULT= new PistaInst(null,cPista, ext );:}
+            | PISTA ERRORSENTENCE LLAVEABRE cuerpo:cPista   LLAVECIERRA                          {:RESULT= new PistaInst(null,cPista, null );:}
+        ;
+
+extiende::= extiende:ext COMA IDENTIFICADOR:id  {: ext.add(id.toString());  
+                                                   RESULT= ext;:}
+            | IDENTIFICADOR:id             {:ArrayList<String> ids = new ArrayList();
+                                          ids.add(id.toString()); 
+                                          RESULT = ids;  :}
+;
+
+cuerpo::=           cuerpoPista: cuerpo {:RESULT= cuerpo;:}
+                    |        {:RESULT= null;:}
+; 
+
+cuerpoPista::=   cuerpoPista:cuerpo cuerpPistaP:cuerpoP       {:
+                                                                    cuerpo.add(cuerpoP);
+                                                                    RESULT= cuerpo;
+                                                                :}
+                |cuerpPistaP:cuerpoP                         {:ArrayList<Instruccion> sentencias = new ArrayList();
+                                                                 sentencias.add(cuerpoP);   
+                                                                RESULT = sentencias;
+                                                                :}
+                
+;
+
+
+cuerpPistaP ::=          MetodoFuncioDec:fun           
+                                            {:System.out.println("cuerpPistaP-MetodoFuncioDec"); RESULT= fun;:}
+                                    | declaracionVar:decVar    PUNTOYCOMA    
+                                            {:System.out.println("cuerpPistaP-declaracionVar"); RESULT= decVar; :}
+                                  
+; 
+
+arreglo ::=          declaraArreglo:arr  IGUAL elementosArreglo:elem 
+                                    {:arr.setValores(elem); RESULT= arr;:}
+                           |declaraArreglo:arr   {:RESULT= arr;:}
+;
+
+elementosArreglo::=         elementosArreglo:e LLAVEABRE listElementos:elem LLAVECIERRA 
+                                                    {: e.add(elem); RESULT= e;:}
+                                            |LLAVEABRE listElementos:e LLAVECIERRA 
+                                                    {: ArrayList<ArrayList<Expresion>> elem= new ArrayList();
+                                                    elem.add(e);
+                                                    RESULT= elem;:}
+;
+
+listElementos::=    listElementos:elementos COMA expresion: e
+                        {:elementos.add(e); RESULT= elementos;:}
+                    |expresion:e 
+                        {:ArrayList<Expresion> elementos = new ArrayList();
+                            elementos.add(e);
+                            RESULT = elementos;
+                        :}
+;
+
+declaraArreglo::=       VAR tipos:tipo ARREGLO listaID:id  dimensionesArr:dimension  
+                                    {:RESULT= new Arreglo(tipo, id.get(0), dimension.size(), dimension);:};
+
+dimensionesArr::=       dimensionesArr:dimensiones CORCHETEIZ expresion:e CORCHETEDER 
+                            {:dimensiones.add(e); RESULT= dimensiones;:}
+                            
+                        |CORCHETEIZ expresion:e CORCHETEDER  
+                            {:ArrayList<Expresion> dimensiones = new ArrayList();
+                             dimensiones.add(e);
+                                RESULT = dimensiones;
+                            :}
+;
+
+MetodoFuncioDec::=      KEEP MetodoFuncion:met  
+                                            {:  Class c = met.getClass();
+                                                    if(c.getName().contains("Metodo")){
+                                                        ((Metodo)met).setIsKeep(true);
+                                                        RESULT= met;
+                                                    }else if(c.getName().contains("Funcion")){
+                                                        ((Funcion)met).setIsKeep(true);
+                                                        RESULT= met;
+                                                    }
+                                                :} 
+                        |MetodoFuncion:met      {:RESULT= met;:} 
+                         |VOID MetodoFuncion:met      {:RESULT= met;:} 
+;
+
+
+
+tipos::=    SENTERO             {:RESULT=Simbolo.Tipo.STRING;:}
+            |SDOBLE             {:RESULT=Simbolo.Tipo.DOUBLE;:}
+            |SBOOLEAN           {:RESULT=Simbolo.Tipo.BOOL;:}
+            |SCARACTER          {:RESULT=Simbolo.Tipo.CHAR;:}
+            |SCADENA            {:RESULT=Simbolo.Tipo.STRING;:}   
+;
+
+decrementosuma ::=    expresion:exp SUMASUMA        {: RESULT = new DecIncremento(exp, DecIncremento.TipoDecIncremento.masmas); :}
+                    | expresion:exp MENOSMENOS    {: RESULT = new DecIncremento(exp, DecIncremento.TipoDecIncremento.menosmenos); :}
+                    | expresion:exp                   {: RESULT = new DecIncremento(exp, null); :}
+;
+
+
+
+sentencias ::=   
+
+                  arreglo:sent PUNTOYCOMA{:RESULT = sent; :}      
+                |declaracionVar:sent  PUNTOYCOMA
+                                    {:RESULT = sent; :}       
+                | llamadaAsignacionSentencias:sent PUNTOYCOMA
+                        {:RESULT = sent; :}    
+                | decrementosuma:sent PUNTOYCOMA       
+                        {:RESULT = sent; :}   
+                 | sentenciaIfElse:sent 
+                        {:RESULT = sent; :}   
+                 | switchsentencia:sent        
+                        {: RESULT = sent; :} 
+                 | forSentencia:sent           
+                        {:RESULT = sent; :} 
+                 | mientrasSentecia:sent            
+                        {:RESULT = sent; :} 
+                 | hacerMientrasSentencia:sent       
+                        {:RESULT = sent; :} 
+                 | CONTINUESENTENCE:sentencia PUNTOYCOMA 
+                        {: RESULT =(Instruccion) sentencia; :} 
+                 | BREAKSENTENCE:sentencia PUNTOYCOMA                           
+                        {: RESULT = (Instruccion) sentencia; :} 
+                 | RETURNSENTENCE:ret PUNTOYCOMA               
+                        {: RESULT = (Instruccion)ret; :} 
+                 | MENSAJE PARABRE expresion:exp PARCIERRA PUNTOYCOMA             
+                        {:  Instruccion ins = new Mensaje(exp);
+                          RESULT = ins; :}
+                 |MetodoFuncionNative:funNatva PUNTOYCOMA
+                      {: RESULT = funNatva; ;:}
+                  |error sentencias:sen {: RESULT = sen; ;:}
+;
+
+listaSentencias::=     listaSentencias: instrucciones  sentencias: sent 
+                                            {:
+                                                instrucciones.add(sent);
+                                                RESULT = instrucciones;
+                                              :}
+                                   |sentencias: sent
+                                            {:
+                                                ArrayList<Instruccion> instrucciones = new ArrayList();
+                                                instrucciones.add(sent);
+                                                RESULT = instrucciones;
+                                              :}
+                                   
+;
+
+
+// VARIABLES
+
+
+declaraVar::=   VAR  tipos:tip listaID:idList       {:RESULT = new Declaracion(idList,tip, false );:}
+                |KEEP VAR tipos:tip listaID:idList  {:RESULT = new Declaracion(idList,tip, true );:}
+                |tipos:tip listaID:idList  {:RESULT = new Declaracion(idList,tip, true );:}
+                |KEEP tipos:tip listaID:idList  {:RESULT = new Declaracion(idList,tip, true );:}
+;
+
+declaracionVar ::=    declaraVar:dec  IGUAL  expresion:exp 
+                                            {:
+                                                    Declaracion decl= (Declaracion) dec;
+                                                     RESULT = new Asignacion(decl.getIds(), exp, expleft, expright);
+                                            :}
+                                   |declaraVar:dec  IGUAL  MetodoFuncionNative:funcionNativa 
+                                                     {:  Declaracion decl= (Declaracion) dec;
+                                                    RESULT = new Asignacion(decl.getIds(), funcionNativa); :}
+                                   |declaraVar:dec 
+                                            {:RESULT = (Declaracion)dec;:}
+;
+
+
+listaID::=  listaID:lsIds COMA IDENTIFICADOR:id {:lsIds.add(id.toString());
+                                                RESULT = lsIds;:}
+            |IDENTIFICADOR:id  {:ArrayList<String> ids = new ArrayList();
+                             ids.add(id.toString());
+                                RESULT = ids;:}
+;
+
+llamadaAsignacionSentencias::=      IDENTIFICADOR:id IGUAL expresion:exp
+                                                                        {: RESULT = new Asignacion(id.toString(), (Expresion)exp); :}
+                                                             |IDENTIFICADOR:id IGUAL MetodoFuncionNative:funcionNativa
+                                                                        {: RESULT = new Asignacion(id.toString(), funcionNativa); :}
+                                                              |IDENTIFICADOR:id dimensionesArr:e IGUAL          expresion:exp
+                                                              {: RESULT = new ReasignarValorArreglo(id.toString(), exp, e); :}
+                                    
+;
+//----------------------
+
+/*  INSTRUCCIONES CONDICIONALES */
+
+sentenciaIfElse ::=   IF PARABRE expresion:exp PARCIERRA  LLAVEABRE listaSentencias:sent LLAVECIERRA 
+                                            {: RESULT =  new SentenciaIf(exp, sent, null, null); :}
+                                   | IF PARABRE expresion:exp PARCIERRA LLAVEABRE listaSentencias:sent LLAVECIERRA  ELSE LLAVEABRE listaSentencias:sentElse LLAVECIERRA  
+                                            {: RESULT =  new SentenciaIf( exp, sent,new SentenciaElse(sentElse), null); :}
+                                   | IF PARABRE expresion:exp PARCIERRA LLAVEABRE listaSentencias:sent LLAVECIERRA ELSE   sentenciaIfElse:sentElseIf 
+                                            {: RESULT = new SentenciaIf(exp, sent, null,new SentenciaIfElse(sentElseIf)); :}
+;  
+//------------
+CONTINUESENTENCE ::= CONTINUAR     
+            ;
+BREAKSENTENCE ::= SALIR  {:RESULT= new Salir();:}
+            ;
+
+RETURNSENTENCE ::=      RETORNA expresion:exp   {:RESULT =new Return(exp);:}
+                                            | RETORNA                    {:RESULT = new Return(null);:}
+;
+                                          
+
+//SWITCH
+
+
+switchsentencia ::=         SWITCH PARABRE expresion:exp PARCIERRA LLAVEABRE LLAVECIERRA                                  
+                                                    {: RESULT = new SwitchInstruccion(exp, null, null); :}
+                                            |SWITCH PARABRE expresion:exp PARCIERRA LLAVEABRE caselist:casels defaultOp:def  LLAVECIERRA   
+                                                    {: RESULT =  new SwitchInstruccion(exp, casels, def); :}
+                                            | SWITCH PARABRE expresion:exp PARCIERRA LLAVEABRE  caselist:casels  LLAVECIERRA               
+                                                    {: RESULT =  new SwitchInstruccion(exp, casels, null); :}
+                                            | SWITCH PARABRE expresion:exp PARCIERRA  LLAVEABRE defaultOp:def     LLAVECIERRA                
+                                                    {: RESULT = new SwitchInstruccion(exp, null, def); :}
+;
+
+caselist::= caselist:casesF caseFinal:casef       {: 
+                                        casesF.add(casef);
+                                        RESULT = casesF; 
+                                    :}
+            | caseFinal:casef              {: ArrayList<Case> cases = new ArrayList();
+                                        cases.add(casef);
+                                        RESULT = cases; :}
+        ;
+
+caseFinal::=      CASO expresion:exp DOSPUNTOS  listaSentencias:sent    {: RESULT = new Case(exp, sent); :}
+                          |CASO expresion:exp DOSPUNTOS 
+                ;
+
+defaultOp::=    DEFAULT DOSPUNTOS listaSentencias:sent       {: RESULT = new Default(sent); :}
+                          |DEFAULT DOSPUNTOS
+                          
+;
+
+
+//-------------------------------
+//CICLOS
+//FOR
+    forSentencia ::=            PARA PARABRE asignacionesFor:asign PUNTOYCOMA expresion:expr PUNTOYCOMA parFor:asignFor PARCIERRA 
+                                            LLAVEABRE listaSentencias:sent LLAVECIERRA  
+                                                    {: RESULT = new For(asign, expr, asign, sent); :}
+                                            |PARA PARABRE asignacionesFor:asign PUNTOYCOMA expresion:expr PUNTOYCOMA parFor:asignFor PARCIERRA 
+                                            LLAVEABRE  LLAVECIERRA  
+                                                    {: RESULT = new For(asign, expr, asign, null); :}
+                                            
+            ;
+
+parFor::=           declaracionVar:dec {:RESULT = dec;:}
+                            |decrementosuma:dec {:RESULT = dec;:}
+;
+
+asignacionesFor::=            tipos:tipo IDENTIFICADOR:id IGUAL expresion:exp         
+                                                    {: RESULT = new DeclaracionFor((Simbolo.Tipo)tipo, id.toString(), (Expresion)exp); :}   
+                                            | IDENTIFICADOR:id IGUAL expresion:exp                   
+                                                    {: RESULT = new DeclaracionFor(null, id.toString(), (Expresion)exp); :}
+                                            |VAR tipos:tipo IDENTIFICADOR:id IGUAL expresion:exp         
+                                                    {: RESULT = new DeclaracionFor((Simbolo.Tipo)tipo, id.toString(), (Expresion)exp); :}   
+            ;
+
+//MIENTRAS WHILE
+mientrasSentecia::= MIENTRAS PARABRE expresion:expr PARCIERRA LLAVEABRE  listaSentencias:list LLAVECIERRA     
+                                    {: RESULT = new While( expr,list); :}
+                                    |MIENTRAS PARABRE expresion:expr PARCIERRA LLAVEABRE   LLAVECIERRA     
+                                    {: RESULT = new While( expr,null); :}
+            ;
+
+//DOWHILE
+
+hacerMientrasSentencia::= 
+                                            HACER LLAVEABRE listaSentencias:list LLAVECIERRA  MIENTRAS PARABRE expresion:expr PARCIERRA  
+                                                    {: RESULT = new DoWhile(expr,list);  :}
+                                            |HACER LLAVEABRE LLAVECIERRA  MIENTRAS PARABRE expresion:expr PARCIERRA  
+                                                    {: RESULT = new DoWhile(expr,null);  :}
+;
+
+
+
+//declaracion METODO FUNCION
+ 
+
+MetodoFuncion::=      tipos:tipo IDENTIFICADOR:id PARABRE declaracionParametro:param PARCIERRA  LLAVEABRE listaSentenciasMetodo:ls  LLAVECIERRA
+                                            {: RESULT = new Funcion(id.toString(), param, (ArrayList<Instruccion>)ls, (Simbolo.Tipo)tipo); :}
+
+                                    | tipos:tipo IDENTIFICADOR:id PARABRE PARCIERRA   LLAVEABRE   listaSentenciasMetodo:ls  LLAVECIERRA                   
+                                            {: RESULT = new Funcion(id.toString(), null,(ArrayList<Instruccion>) ls, (Simbolo.Tipo)tipo);:}
+
+                                    | IDENTIFICADOR:id PARABRE declaracionParametro:params PARCIERRA  LLAVEABRE listaSentenciasMetodo:ls    LLAVECIERRA  
+                                            {: RESULT = new Metodo(id.toString(), params,(ArrayList<Instruccion>)ls ,false); :}
+
+                                    | IDENTIFICADOR:id PARABRE PARCIERRA    LLAVEABRE  listaSentenciasMetodo:ls       LLAVECIERRA                        
+                                            {: RESULT = new Metodo(id.toString(), null, (ArrayList<Instruccion>)ls,false); :}
+
+                                    | PRINCIPAL:id PARABRE PARCIERRA   LLAVEABRE   listaSentenciasMetodo:ls     LLAVECIERRA                                
+                                            {: RESULT = new Metodo(id.toString(), null, (ArrayList<Instruccion>)ls, true); :}
+
+; 
+listaSentenciasMetodo::=             listaSentencias:list {:RESULT= list;:}
+                                                        |{:RESULT=null;:}
+;
+
+
+MetodoFuncionNative::=  REPRODUCIR PARABRE notas:nota COMA expresion:exp1 COMA expresion:exp2 COMA expresion:exp3 PARCIERRA 
+                                                    {:RESULT = new Reproducir(nota.toString(), exp1,exp2, exp3 );:}
+                                            |ESPERAR PARABRE num:ms COMA num:canal PARCIERRA              
+                                                    {:RESULT = new Esperar((Integer)ms, (Integer)canal);:}
+                                            |ORDENAR PARABRE parSumarizar:exp COMA formaOrdenar:f PARCIERRA  
+                                                    {:RESULT = new Ordenar((Expresion)exp,f.toString());:}
+                                            |SUMARIZAR PARABRE parSumarizar:sum PARCIERRA               
+                                                    {: RESULT = new Sumarizar((Expresion) sum); :}
+                                            |LONGITUD PARABRE parLongitud:sum PARCIERRA                 
+                                                    {:RESULT = new Longitud(sum);:}
+                                            |error PUNTOYCOMA
+;
+
+formaOrdenar::=     ASCENDENTE      {:RESULT = "ascendente";:}
+                    |DESCENDENTE    {:RESULT = "descendente";:}
+                    |PARES          {:RESULT = "pares";:}
+                    |IMPARES        {:RESULT = "impares";:}
+                    |PRIMOS         {:RESULT = "primos";:}
+;
+
+parSumarizar::=     IDENTIFICADOR:p         {:RESULT = new Identificador(p.toString(),pleft, pright);:}
+                    |declaracionesArr:arr   {:RESULT = arr;:}           
+;
+
+parLongitud::=       IDENTIFICADOR:p        {: RESULT = new Identificador(p.toString(),pleft, pright);:}
+                    |CADENA:cadena          {: RESULT = new Primitivo(Simbolo.Tipo.STRING, cadena.toString(),cadenaleft, cadenaright);:}
+                    |declaracionesArr:arr   {:  RESULT = (Expresion) arr;:}
+;
+
+num::=  ENTERO:num      {:RESULT=  Integer. parseInt(num.toString());:}
+        |DECIMAL:num    {:RESULT=  Integer. parseInt(num.toString());:}
+;
+
+notas::=    IDENTIFICADOR:id {:  
+                    String nota = Nota.ComprobarNota(id.toString());
+                    if(nota!= null){
+                        RESULT = nota;
+                    }else{
+                        RESULT = null;
+                    }
+            :}
+;
+
+
+
+declaracionParametro ::=  parametro:param  COMA declaracionParametro:params     {: if(params!=null){
+                                                                                        params.add((Parametro)param); 
+                                                                                        RESULT = params;
+                                                                                    }else{
+                                                                                        RESULT= null;
+                                                                                    }
+                                                                                :}
+                        | parametro:parametro                       {:  ArrayList<Parametro> params = new ArrayList(); 
+                                                                        params.add((Parametro)parametro);
+                                                                        RESULT = params;  :}
+                        | ERRORSENTENCE COMA declaracionParametro:params  {: RESULT = params; :}
+                        | ERRORSENTENCE  {: RESULT = null; :}
+;
+
+parametro::= tipos:tipo IDENTIFICADOR:id {: RESULT = new Parametro((Simbolo.Tipo)tipo, id.toString()); :}
+             ;
+
+//------------------------------------------    
+expresion::=     expr:exp                           {:RESULT= (Expresion) exp;:}
+                |primitivas:exp                           {:RESULT= (Expresion) exp;:}
+                 |IDENTIFICADOR:id dimensionesArr:dim 
+                          {: RESULT = (Expresion)new LlamadaArreglo(id.toString(), "Arreglo", dim); :}
+                  |IDENTIFICADOR:id {: RESULT = new Primitivo(Simbolo.Tipo.STRING,new String(id.toString()), idleft, idright); :}
+;
+
+expr ::=    MENOS expresion:der                 
+                          {: RESULT = new Operacion(der, der, Operacion.Operador.MENOS_UNARIO, derleft, derright );  :} %prec UMENOS   
+                 | NOT expresion:der                 
+                          {: RESULT = new Operacion(der, der, Operacion.Operador.NOT, derleft, derright );  :}
+                 | ESNULO expresion:der              
+                          {: RESULT = new Operacion(der, der, Operacion.Operador.NULO, derleft, derright );  :}
+
+                 | expresion:der MAS expresion:iz       
+                          {: RESULT = new Operacion(der, iz, Operacion.Operador.SUMA, derleft, derright );  :}
+                 | expresion:der MENOS expresion:iz     
+                          {: RESULT = new Operacion(der, iz, Operacion.Operador.RESTA, derleft, derright );  :}
+                 | expresion:der ASTERISCO expresion:iz 
+                          {: RESULT = new Operacion(der, iz, Operacion.Operador.MULTIPLICACION, derleft, derright );  :}
+                 | expresion:der DIV expresion:iz       
+                          {: RESULT = new Operacion(der, iz, Operacion.Operador.DIVISION, derleft, derright ); :}
+                 | expresion:der POT expresion:iz       
+                          {: RESULT = new Operacion(der, iz, Operacion.Operador.POTENCIA, derleft, derright );  :}
+                 | expresion:der MODULO expresion:iz    
+                          {: RESULT = new Operacion(der, iz, Operacion.Operador.MODULO, derleft, derright );  :}
+ 
+                 | expresion:der MAYOR expresion:iz        {: RESULT = new Operacion(der, iz, Operacion.Operador.MAYOR_QUE, derleft, derright ); :}
+                 | expresion:der MENOR expresion:iz        {: RESULT = new Operacion(der, iz, Operacion.Operador.MENOR_QUE, derleft, derright );  :}
+                 | expresion:der MAYORIGUAL expresion:iz   {: RESULT = new Operacion(der, iz, Operacion.Operador.MAYOR_IGUA_QUE, derleft, derright );  :}
+                 | expresion:der MENORIGUAL expresion:iz   {: RESULT = new Operacion(der, iz, Operacion.Operador.MENOR_IGUA_QUE, derleft, derright );  :}
+ 
+                 | expresion:der IGUAL IGUAL expresion:iz  {: RESULT = new Operacion(der, iz, Operacion.Operador.IGUAL_IGUAL, derleft, derright );  :}
+                 | expresion:der NOIGUAL expresion:iz      {: RESULT = new Operacion(der, iz, Operacion.Operador.NOI_GUAL, derleft, derright );  :}
+ 
+                 | expresion:der AND expresion:iz          {: RESULT = new Operacion(der, iz, Operacion.Operador.AND, derleft, derright ); :}
+                 | expresion:der NAND expresion :iz        {: RESULT = new Operacion(der, iz, Operacion.Operador.NAND,derleft, derright ); :}
+                 |  expresion:der OR expresion :iz           {: RESULT = new Operacion(der, iz, Operacion.Operador.OR,  derleft, derright ); :}
+                 | expresion:der NOR expresion:iz          {: RESULT = new Operacion(der, iz, Operacion.Operador.NOR,derleft, derright ); :}
+                 | expresion:der XOR expresion:iz   {: RESULT = new Operacion(der, iz, Operacion.Operador.XOR,derleft, derright ); :}
+
+                 | PARABRE expresion:expr PARCIERRA                     
+                          {: RESULT = expr; :}
+                 |IDENTIFICADOR:id MASIGUAL expresion:e 
+                          {:RESULT = new Operacion(new Identificador(id.toString(), idleft, idright),e, Operacion.Operador.SUMA, idleft, idright );  :}
+                 | IDENTIFICADOR:id PARABRE listaExpresion:e PARCIERRA  
+                          {: RESULT = (Expresion)new LlamadaFuncion(id.toString(), e);  :}
+                 |IDENTIFICADOR:id PARABRE PARCIERRA                    
+                          {: RESULT = (Expresion)new LlamadaFuncion(id.toString(), null); :}
+;
+
+primitivas::=  
+                 DECIMAL:p         {: RESULT = new Primitivo(Simbolo.Tipo.DOUBLE,new Double(p.toString()), pleft, pright); :}
+                | ENTERO:p          {: RESULT = new Primitivo(Simbolo.Tipo.INT, Integer.valueOf(p.toString()), pleft,pright);    :}         
+                | CADENA:p          {: RESULT = new Primitivo(Simbolo.Tipo.STRING, p.toString(), pleft, pright); :}
+                | CHAR:p            {: RESULT = new Primitivo(Simbolo.Tipo.CHAR,p.toString().charAt(0), pleft, pright);     :}
+                | BOOLF:p           {: RESULT = new Primitivo(Simbolo.Tipo.BOOL,false, pleft, pright);       :}
+                | BOOLT:p           {: RESULT = new Primitivo(Simbolo.Tipo.BOOL,true, pleft, pright);        :}
+
+            ;
+
+listaExpresion::=    listaExpresion:lsexp COMA expresion:exp   
+                                        {:lsexp.add(exp);
+                                            RESULT= lsexp;:}
+                                   |expresion:exp    PUNTOYCOMA                          
+                                        {:ArrayList<Expresion> ex= new ArrayList();
+                                            ex.add(exp);
+                                            RESULT= ex;
+                                        :}
+;
+
+
+ERRORSENTENCE ::=    FINALERROR   ;
+
+FINALERROR ::=  error
+            ;

@@ -1,0 +1,161 @@
+
+package CupYFlex.Listas;
+
+import Backend.Listas.AtributoLista;
+import Backend.Listas.Lista;
+import java.util.LinkedList;
+import java_cup.runtime.*;
+import CupYFlex.Listas.ErrorL;
+import java.util.ArrayList;
+
+parser code 
+
+{:
+    public ArrayList<String> avisos = new ArrayList();
+    public ArrayList<Lista> listas = new ArrayList();
+
+    public void syntax_error(Symbol s){
+         if(s.value!= null){
+            System.out.println(s  );
+            String lexema = s.value.toString();
+            int columna =  s.right;
+            int fila = s.left;
+            String red="\033[31m"; 
+            System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna+"simbolo"  );
+            avisos.add("ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna+"simbolo");
+            ErrorL error = new ErrorL(lexema, fila, columna , "error Sintactico");
+            ErrorL.tablaErrores.add(error);
+         }else{
+                  String lexema = s.value.toString();
+            int columna =  s.right;
+            int fila = s.left;
+                  String red="\033[31m"; 
+                 System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + "}"+ "\t\tFila " + 0 +"\t\tColumna: " +0+"simbolo"  );
+                  avisos.add("ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + "}"+ "\t\tFila " + 0 +"\t\tColumna: " +0+"simbolo");
+                ErrorL error = new ErrorL(lexema, fila, columna , "error Sintactico");
+            ErrorL.tablaErrores.add(error);
+            }
+    }
+
+    public void unrrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        String red="\033[31m"; 
+        System.out.println(red + "ERROR SINTACTICO SIN RECUPERACION!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna );
+        ErrorL error = new ErrorL(lexema, fila, columna , "error Sintactico");
+        ErrorL.tablaErrores.add(error);
+    }
+:}
+
+//---------->
+action code {:
+:}
+
+
+terminal            LISTA, NOMBRE,PISTAS, CIRCULAR,ALEATORIA,
+                            BOOLF,BOOLT,
+
+// signos de agrupacion
+                    PARABRE,PARCIERRA, CORCHETEIZ, CORCHETEDER,LLAVEABRE,LLAVECIERRA,
+// digitos
+                    CADENA , IDENTIFICADOR , 
+
+                    DIV, DOSPUNTOS,COMA
+
+                ;
+
+
+
+
+non terminal  ArrayList<String> pistas;
+
+non terminal  verdaderoFalso;
+
+non terminal AtributoLista cuerpo;
+
+non terminal Lista cuerpoLista, cuerpoL, nuevaLista;
+
+non terminal  ArrayList<Lista>   inicio,cuerpoInicio;
+
+start with inicio ;
+
+inicio::=    cuerpoInicio:listas 
+                        {:parser.listas=listas; RESULT= listas;:}
+;
+
+cuerpoInicio::=          cuerpoInicio:listas nuevaLista:l
+                                            {:
+                                                     listas.add(l);
+                                                     RESULT= listas;
+                                            :}    
+                                   |nuevaLista:L  
+                                            {:
+                                                     ArrayList<Lista> listas = new ArrayList();
+                                                     listas.add(L);
+                                                     RESULT= listas;
+                                            :}         
+;
+
+nuevaLista::=       LLAVEABRE LISTA DOSPUNTOS LLAVEABRE cuerpoL:lista LLAVECIERRA LLAVECIERRA
+                                        {:RESULT=lista; :}
+;
+cuerpoL::=           NOMBRE DOSPUNTOS CADENA:nombre
+                           {:
+                                   Lista lista=new Lista();
+                                   AtributoLista at= new AtributoLista("nombre", nombre); 
+                                   lista.Asignar(at);       
+                                   RESULT= lista;
+                           :}
+                          |NOMBRE DOSPUNTOS CADENA:nombre COMA cuerpoLista:lista
+                           {:
+                                   AtributoLista at= new AtributoLista("nombre", nombre); 
+                                   lista.Asignar(at);       
+                                   RESULT= lista;
+                           :}
+;
+cuerpoLista::=      cuerpoLista:lista COMA cuerpo:c
+                                    {:
+                                            lista.Asignar(c);
+                                            RESULT= lista;
+                                    :}
+                                |cuerpo:c 
+                                    {:
+                                            Lista lista=new Lista();
+                                            lista.Asignar(c);
+                                            RESULT= lista;
+                                    :}
+;
+
+cuerpo::=   
+                 ALEATORIA DOSPUNTOS verdaderoFalso :fv
+                           {:
+                                   AtributoLista at= new AtributoLista("random", fv); 
+                                    RESULT = at;
+                           :}
+                    |CIRCULAR DOSPUNTOS verdaderoFalso:fv 
+                          {:
+                                   AtributoLista at= new AtributoLista("circular", fv); 
+                                    RESULT = at;
+                           :}
+                    |PISTAS DOSPUNTOS CORCHETEIZ pistas:p CORCHETEDER 
+                          {:
+                                   AtributoLista at= new AtributoLista("pistas", p); 
+                                    RESULT = at;
+                           :}
+                    |error cuerpo:c {:RESULT = c;:}
+;
+
+verdaderoFalso::=     BOOLF:e  {:RESULT = false;:}
+                                   |BOOLT:e {:RESULT = true;:}
+;
+
+pistas::=           pistas:p  COMA IDENTIFICADOR:id     
+                                    {:p.add(id.toString()); RESULT = p;:}
+                          |IDENTIFICADOR : id
+                                    {:
+                                            ArrayList<String> identificadores=new ArrayList();
+                                            identificadores.add(id.toString());
+                                            RESULT= identificadores;
+                                    :}
+;

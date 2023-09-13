@@ -1,0 +1,115 @@
+
+package CupYFlex;
+
+import java.util.LinkedList;
+import java_cup.runtime.*;
+import CupYFlex.ErrorS;
+import java.util.ArrayList;
+
+parser code 
+
+{:
+    public void syntax_error(Symbol s){
+        String lexema = s.value.toString();
+        int fila =  s.right;
+        int columna = s.left;
+        String red="\033[31m"; 
+        System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna+"simbolo"  );
+        ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
+        ErrorS.tablaErroresSintacticos.add(error);
+    }
+
+    public void unrrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        String red="\033[31m"; 
+        System.out.println(red + "ERROR SINTACTICO SIN RECUPERACION!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna );
+        ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
+        ErrorS.tablaErroresSintacticos.add(error);
+    }
+:}
+
+//---------->
+action code {:
+:}
+
+
+terminal            SOLICITUD, TIPO, NOMBRE,LISTAS, ALEATORIA, LISTA,DURACION,
+                    CANAL, PISTA,NUMERO,NOTA,FRECUENCIA,OCTAVA,DATOS,
+
+// signos de agrupacion
+                    ARABRE,PARCIERRA, CORCHETEIZ, CORCHETEDER,LLAVEABRE,LLAVECIERRA,
+// digitos
+                    CADENA , IDENTIFICADOR , DECIMAL ,ENTERO ,CHAR ,DIV,PISTAS,
+                    MAYOR,MENOR, IGUAL
+
+                ;
+
+terminal String UMENOS;
+
+non terminal   S, F,inicio,cuerpoInicio, solicitud,cuerpoSolicitud, listaListas, lista,
+               listas, cuerpoSolicitudP, numero, pistas,pistaList, pista
+;
+
+
+
+start with inicio;
+/*
+S::=    S F 
+        |F
+;
+
+F::=    IDENTIFICADOR     {:System.out.println( "IDENTIFICADOR");:}
+        | DECIMAL   {:System.out.println( "DECIMAL");:}
+        | CHAR      {:System.out.println( "CHAR");:}
+        | CADENA    {:System.out.println( "CADENA");:}
+        | ENTERO      {:System.out.println( "ENTERO");:}
+        |ASTERISCO  {:System.out.println( "ASTERISCO");:}
+        ;
+*/
+inicio::=   inicio cuerpoInicio
+            |cuerpoInicio
+;
+
+cuerpoInicio::= solicitud
+                |listaListas
+                |pistas
+                |error MENOR cuerpoInicio
+;
+
+solicitud::=    MENOR SOLICITUD MAYOR cuerpoSolicitud  DIV SOLICITUD MAYOR
+;
+
+cuerpoSolicitud::=  MENOR TIPO MAYOR LISTA MENOR DIV TIPO MAYOR cuerpoSolicitudP
+                    |MENOR TIPO MAYOR PISTA MENOR DIV TIPO MAYOR cuerpoSolicitudP
+;
+
+cuerpoSolicitudP::= MENOR NOMBRE MAYOR CADENA MENOR DIV NOMBRE MAYOR MENOR
+                    |MENOR
+;
+
+listaListas::=     MENOR LISTAS MAYOR  listas MENOR DIV LISTAS MAYOR
+;
+
+listas::=           listas lista 
+                    |lista
+;
+
+lista::=            MENOR LISTA NOMBRE IGUAL CADENA PISTA IGUAL numero;
+
+numero::=           DECIMAL
+                    |ENTERO
+;
+
+pistas::=           MENOR PISTAS MAYOR pistaList MENOR DIV PISTAS MAYOR
+;
+
+pistaList::=        pistaList pista
+                    |pista
+;
+
+pista::=            MENOR PISTA NOMBRE IGUAL CADENA 
+                                DURACION IGUAL DECIMAL 
+                    MAYOR
+;
